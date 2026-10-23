@@ -270,7 +270,10 @@ func toggle_flight() -> bool:
 	velocity.y = 4.2
 	scanner.clear()
 	model.clear_action()
-	GameState.notify("Spread your wings! Space to rise · Ctrl to descend · F to land", "discovery")
+	if MobileUI.touch_enabled():
+		GameState.notify("Spread your wings! Hold Rise to climb · Down to descend · Land to touch down", "discovery")
+	else:
+		GameState.notify("Spread your wings! Space to rise · Ctrl to descend · F to land", "discovery")
 	AudioManager.play_sfx("chime")
 	return true
 

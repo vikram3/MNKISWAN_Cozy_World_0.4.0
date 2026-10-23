@@ -89,6 +89,13 @@ class MapCanvas extends Control:
 			draw_circle(at + Vector2(-3, -2), 4, pink)
 			draw_circle(at + Vector2(3, -2), 4, pink)
 			draw_colored_polygon(PackedVector2Array([at + Vector2(-7, -1), at + Vector2(7, -1), at + Vector2(0, 8)]), pink)
+		# Personal pin
+		if Waypoints.custom_pin != null:
+			var cp := _w2m(Waypoints.custom_pin)
+			draw_circle(cp, 14, Color(Waypoints.PIN_COLOR, 0.3))
+			draw_line(cp, cp + Vector2(0, -26), Color("173b31"), 3.0, true)
+			draw_colored_polygon(PackedVector2Array([cp + Vector2(0, -26), cp + Vector2(18, -19), cp + Vector2(0, -12)]), Waypoints.PIN_COLOR)
+			draw_string(font, cp + Vector2(20, -6), "your pin", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("1d6b75"))
 		# Swan
 		if GameState.swan:
 			draw_circle(_w2m(GameState.swan.global_position), 7, Color.WHITE)
@@ -107,35 +114,33 @@ class MapCanvas extends Control:
 				var pos := _w2m(SkyTrail.STOPS[i])
 				draw_arc(pos, 6, 0, TAU, 20, Color("bd8a2e"), 2.5)
 		draw_string(font, Vector2(16, size.y - 36), "Teal: gathering places · Pink hearts: shared rituals · Gold centres: completed", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("173b31"))
-		draw_string(font, Vector2(16, size.y - 14), "Arrow: you · White: friend · Gold rings: sky feathers · Coral: objective", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("173b31"))
+		draw_string(font, Vector2(16, size.y - 14), "Arrow: you · White: friend · Gold rings: sky feathers · Coral: objective · Tap the map to drop a pin", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("173b31"))
 
 	func _quest_target():
-		var q := GameState.quests.tracked_quest()
-		if q == "":
-			return null
-		var t := GameState.quests.objective_target(q)
-		if t == "":
-			var o := GameState.quests.objective(q)
-			match String(o.get("type", "")):
-				"collect":
-					match String(o.get("item", "")):
-						"item_berry": return GameData.region_world_pos("berry_maze")
-						"item_mango": return GameData.region_world_pos("tropical_forest")
-						"key_windchime": return GameData.region_world_pos("tropical_forest")
-				"care": return GameData.region_world_pos("animal_farm")
-				"catch": return GameData.region_world_pos("waterfall_ponds")
-				"harvest": return GameData.region_world_pos("paddy_field")
-				"sell", "stall_level": return GameData.region_world_pos("market_square")
-			return null
-		if t.begins_with("region:"):
-			return GameData.region_world_pos(t.substr(7))
-		if t == "stall_basket":
-			return GameData.region_world_pos("market_square")
-		if t == "swan" and GameState.swan:
-			return GameState.swan.global_position
-		for n in get_tree().get_nodes_in_group("interactable"):
-			if n is NpcCharacter and (n as NpcCharacter).npc_id == t:
-				return (n as Node3D).global_position
-			if n is Interactable and (n as Interactable).object_id == t:
-				return (n as Node3D).global_position
-		return null
+		return Waypoints.quest_target(get_tree())
+
+	func _m2w(m: Vector2) -> Vector3:
+		var s := size
+		var sc := minf(s.x / (WMAX.x - WMIN.x), s.y / (WMAX.y - WMIN.y))
+		var off := (s - (WMAX - WMIN) * sc) * 0.5
+		var w := (m - off) / sc + WMIN
+		return Vector3(w.x, 0.0, w.y)
+
+	func _ready() -> void:
+		gui_input.connect(_on_input)
+
+	## Tap / click the map to drop a personal pin; tap the pin again to clear it.
+	func _on_input(ev: InputEvent) -> void:
+		if not (ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT):
+			return
+		if Waypoints.custom_pin != null and _w2m(Waypoints.custom_pin).distance_to(ev.position) < 26.0:
+			Waypoints.set_pin(null)
+		else:
+			var w := _m2w(ev.position)
+			if w.x < WMIN.x + 2 or w.x > WMAX.x - 2 or w.z < WMIN.y + 2 or w.z > WMAX.y - 2:
+				return
+			Waypoints.set_pin(w)
+		MobileUI.vibrate(14)
+		AudioManager.play_sfx("ui")
+		accept_event()
+		queue_redraw()

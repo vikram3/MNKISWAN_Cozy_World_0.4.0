@@ -29,14 +29,24 @@ var _character_name: Label
 var _ability: Label
 var _portrait: TextureRect
 var _portrait_id := ""
+var _tl: PanelContainer
+var _card: PanelContainer
+var _keycap: PanelContainer
+var minimap: Minimap
+var markers: WaypointMarkers
+var _touch_layout := -1  # -1 unknown, 0 desktop, 1 touch
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	theme = UITheme.get_theme()
+	# Waypoint pins sit underneath every other HUD element.
+	markers = WaypointMarkers.new()
+	add_child(markers)
 	# --- Top-left: time + coins ----------------------------------------------------------------
 	var tl := PanelContainer.new()
+	_tl = tl
 	tl.position = Vector2(24, 20)
 	tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(tl)
@@ -85,6 +95,7 @@ func _ready() -> void:
 	ph.add_theme_constant_override("separation", 14)
 	_prompt_box.add_child(ph)
 	var keycap := PanelContainer.new()
+	_keycap = keycap
 	var ksb := UITheme.box(UITheme.FOREST, 10, Color(0, 0, 0, 0), 0, 10)
 	ksb.shadow_size = 0
 	keycap.add_theme_stylebox_override("panel", ksb)
@@ -143,7 +154,10 @@ func _ready() -> void:
 	_update_coins()
 	_update_objective()
 	_update_seed()
+	minimap = Minimap.new()
+	add_child(minimap)
 	var card := PanelContainer.new()
+	_card = card
 	UITheme.place(card, Control.PRESET_BOTTOM_LEFT, Vector2(24, -210))
 	card.custom_minimum_size = Vector2(360, 150)
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -169,8 +183,14 @@ func _process(delta: float) -> void:
 		if _portrait_id != active.character_id:
 			_portrait_id = active.character_id
 			_portrait.texture = load("res://assets/characters/portraits/%s_happy.png" % _portrait_id)
-		_character_name.text = active.character_id.to_upper() + "  ·  " + Settings.binding_label("switch_character") + " switch"
-		if active.character_id == "swan":
+		var touch := MobileUI.touch_enabled()
+		_character_name.text = active.character_id.to_upper() + ("" if touch else "  ·  " + Settings.binding_label("switch_character") + " switch")
+		if touch:
+			if active.character_id == "swan":
+				_ability.text = ("%s · %.0f m" % [active.flight_mode.capitalize(), active.global_position.y]) if active.flight_mode != "grounded" else "Sky feathers %d / 6 · tap Fly" % SkyTrail.collected_count()
+			else:
+				_ability.text = "Village explorer"
+		elif active.character_id == "swan":
 			if active.flight_mode != "grounded":
 				_ability.text = "%s · %.0f m\n%s rise · %s descend\n%s land / hover · Shift cruise" % [active.flight_mode.capitalize(), active.global_position.y, Settings.binding_label("jump"), Settings.binding_label("descend"), Settings.binding_label("fly")]
 			else:
@@ -183,7 +203,7 @@ func _process(delta: float) -> void:
 			p.scanner.focus_changed.connect(_on_focus)
 			_connected = true
 	_time_label.text = "Day %d · %s" % [TimeManager.day, TimeManager.clock_string()]
-	_period_label.text = TimeManager.period_name() + (" · Lantern market open" if DailyLifeData.market_open(TimeManager.hour()) else "") + "\n" + Settings.binding_label("together") + "  Our days together"
+	_period_label.text = TimeManager.period_name() + (" · Lantern market open" if DailyLifeData.market_open(TimeManager.hour()) else "") + ("" if MobileUI.touch_enabled() else "\n" + Settings.binding_label("together") + "  Our days together")
 	_obj_box.visible = not bool(Settings.get_value("quiet_hud")) and (_obj_title.text != "FREE TIME" or GameState.quests.done_ids().size() > 0)
 	# Coin count changes subtly
 	if _coin_shown != GameState.economy.coins:
@@ -202,6 +222,63 @@ func _process(delta: float) -> void:
 		_fish_label.scale = Vector2.ONE * (1.0 + absf(sin(Time.get_ticks_msec() * 0.012)) * 0.08)
 	visible = not force_hidden and not (GameState.top_ui() in ["pause", "map", "journal", "inventory", "shop", "storage", "settings", "together"])
 	_check_region_banner()
+	if visible:
+		_relayout()
+
+
+## Notch-safe, phone-aware placement of every HUD block. Runs each frame (cheap) so rotation,
+## resizing and switching between touch and keyboard all reflow instantly.
+func _relayout() -> void:
+	var vp := get_viewport()
+	var vs := vp.get_visible_rect().size
+	var ins := MobileUI.safe_insets(vp)
+	var touch := MobileUI.touch_enabled()
+	var hs := MobileUI.hud_scale()
+	var k := MobileUI.control_scale(vp) if touch else 1.0
+	var mm := TouchControls.minimap_rect_for(vp)
+	var mm_on := bool(Settings.get_value("minimap"))
+	var m := 24.0
+	var mode := 1 if touch else 0
+	if mode != _touch_layout:
+		_touch_layout = mode
+		_keycap.visible = not touch
+		_hint.visible = not touch
+		_portrait.custom_minimum_size = Vector2(64, 78) if touch else Vector2(94, 114)
+		_card.custom_minimum_size = Vector2(250, 0) if touch else Vector2(360, 150)
+		_card.reset_size()
+		_prompt_box.custom_minimum_size.x = 560 if touch else 800
+		_prompt_box.reset_size()
+		_update_seed()
+		for c in [_tl, _obj_box, _prompt_box, _toasts, _card, _save_label]:
+			(c as Control).set_anchors_preset(Control.PRESET_TOP_LEFT)
+	# Top-left: clock & coins (after the pause button on touch)
+	var left := ins.x + m + ((34.0 * 2.0 * k + 16.0) if touch else 0.0)
+	_tl.scale = Vector2.ONE * hs
+	_tl.position = Vector2(left, ins.y + 20.0)
+	var tl_bottom := _tl.position.y + _tl.size.y * hs
+	# Character card: bottom-left on desktop; tucked under the clock on touch (joystick lives low-left).
+	_card.scale = Vector2.ONE * hs
+	if touch:
+		_card.position = Vector2(left, tl_bottom + 12.0)
+	else:
+		_card.position = Vector2(ins.x + m, vs.y - ins.w - 60.0 - _card.size.y)
+	# Objective: centred, but never under the clock or the minimap.
+	var lo := _tl.position.x + _tl.size.x * hs + 20.0
+	var hi := (mm.position.x - 20.0) if mm_on else (vs.x - ins.z - m)
+	var w := clampf((hi - lo) / hs, 380.0, 760.0)
+	_obj_box.custom_minimum_size.x = w
+	_obj_box.size.x = w
+	_obj_box.scale = Vector2.ONE * hs
+	var ox := clampf(vs.x * 0.5 - w * hs * 0.5, lo, maxf(lo, hi - w * hs))
+	_obj_box.position = Vector2(ox, ins.y + 20.0)
+	# Prompt above the bottom edge (between joystick and action buttons on touch).
+	_prompt_box.scale = Vector2.ONE * hs
+	_prompt_box.position = Vector2(vs.x * 0.5 - _prompt_box.size.x * hs * 0.5, vs.y - ins.w - (150.0 if not touch else 170.0) * hs)
+	# Toasts stack under the minimap (and the touch menu row).
+	var tw := 530.0
+	var ty := (mm.end.y + (36.0 * 2.0 * k + 44.0 * k if touch else 26.0)) if mm_on else ins.y + 24.0
+	_toasts.position = Vector2(vs.x - ins.z - m - tw, ty)
+	_save_label.position = Vector2(vs.x * 0.5 - 40.0, _obj_box.position.y + _obj_box.size.y * hs + 70.0) if touch else Vector2(vs.x - ins.z - 260.0, vs.y - ins.w - 60.0)
 
 
 var _last_region := ""
@@ -227,7 +304,9 @@ func _update_coins() -> void:
 
 func _update_seed() -> void:
 	var s := GameState.get_selected_seed()
-	_seed_label.text = ("Seed: %s (%s)" % [ItemDB.display_name(s), Settings.binding_label("cycle_seed")]) if s != "" else ""
+	_seed_label.text = ("Seed: %s" % ItemDB.display_name(s) + ("" if MobileUI.touch_enabled() else " (%s)" % Settings.binding_label("cycle_seed"))) if s != "" else ""
+	_seed_label.visible = s != ""
+	_tl.reset_size()
 
 
 func _update_objective() -> void:
@@ -264,12 +343,12 @@ func _on_toast(text: String, kind: String) -> void:
 		"discovery", "journal": border = UITheme.TEAL
 	var sb := UITheme.box(col, 14, border, 3, 12)
 	pc.add_theme_stylebox_override("panel", sb)
-	var l := UITheme.label(text, 22)
+	var l := UITheme.label(MobileUI.adapt_text(text), 22)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.custom_minimum_size.x = 500
 	pc.add_child(l)
 	_toasts.add_child(pc)
-	while _toasts.get_child_count() > 3:
+	while _toasts.get_child_count() > (2 if MobileUI.touch_enabled() else 3):
 		var old := _toasts.get_child(0)
 		_toasts.remove_child(old)
 		old.queue_free()
@@ -289,7 +368,7 @@ func _on_fish(state: String) -> void:
 			_fish_label.text = "Watch the bobber..."
 			_fish_label.add_theme_font_size_override("font_size", 36)
 		"bite":
-			_fish_label.text = "!  BITE — press %s  !" % Settings.binding_label("interact").get_slice(" / ", 0)
+			_fish_label.text = "!  BITE — tap Reel  !" if MobileUI.touch_enabled() else "!  BITE — press %s  !" % Settings.binding_label("interact").get_slice(" / ", 0)
 			_fish_label.add_theme_font_size_override("font_size", 64)
 		"caught":
 			_fish_label.text = "Caught!"

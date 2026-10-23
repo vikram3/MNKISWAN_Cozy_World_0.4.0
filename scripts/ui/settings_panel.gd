@@ -63,6 +63,37 @@ func build_content() -> void:
 	ob.item_selected.connect(func(i): Settings.set_value("window_mode", ["windowed", "borderless", "fullscreen"][i]))
 	wm.add_child(ob)
 	_slider(acc, "Text size (applies when menus reopen)", "text_scale", 0.85, 1.4)
+	var tch := VBoxContainer.new()
+	tch.name = "Touch & HUD"
+	tch.add_theme_constant_override("separation", 10)
+	tabs.add_child(tch)
+	var tm := HBoxContainer.new()
+	var tml := UITheme.label("On-screen touch controls", 24)
+	tml.custom_minimum_size.x = 460
+	tm.add_child(tml)
+	var tob := OptionButton.new()
+	var modes := ["auto", "on", "off"]
+	for mname in ["Auto (phones & touchscreens)", "Always on", "Off"]:
+		tob.add_item(mname)
+	tob.selected = maxi(modes.find(String(Settings.get_value("touch_controls"))), 0)
+	tob.item_selected.connect(func(i): Settings.set_value("touch_controls", modes[i]))
+	tm.add_child(tob)
+	tch.add_child(tm)
+	_slider(tch, "Button & joystick size", "touch_scale", 0.7, 1.4)
+	_slider(tch, "Button opacity", "touch_opacity", 0.3, 1.0)
+	_slider(tch, "Swipe-look sensitivity", "touch_look_sensitivity", 0.3, 2.5)
+	_check(tch, "Push the joystick to its edge to run", "stick_sprint")
+	_check(tch, "Vibration on taps (phones)", "haptics")
+	_check(tch, "Show minimap", "minimap")
+	_check(tch, "Minimap turns with the camera", "minimap_rotate")
+	_check(tch, "Show waypoints & beacons", "waypoints")
+	tch.add_child(UITheme.button("Replay tutorial", func():
+		if GameState.ui and GameState.in_world:
+			close()
+			GameState.ui.replay_tutorial()
+		else:
+			Settings.set_value("tutorial_done", false)
+			_status.text = "The tutorial will play when you enter the village.", 320))
 	var keys := VBoxContainer.new()
 	keys.name = "Controls"
 	tabs.add_child(keys)

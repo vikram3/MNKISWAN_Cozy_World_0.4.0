@@ -9,6 +9,7 @@ var root_box: PanelContainer
 var content: VBoxContainer
 var _title_label: Label
 var _dim: ColorRect
+var _close_btn: Button
 
 
 func _init() -> void:
@@ -37,7 +38,8 @@ func _ready() -> void:
 	_title_label = UITheme.label(title_text, 38, UITheme.FOREST, true)
 	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(_title_label)
-	head.add_child(UITheme.button("Close (Esc)", close))
+	_close_btn = UITheme.button("Close" if MobileUI.touch_enabled() else "Close (Esc)", close)
+	head.add_child(_close_btn)
 	var sep := ColorRect.new()
 	sep.color = UITheme.SAGE
 	sep.custom_minimum_size.y = 3
@@ -73,6 +75,10 @@ func open() -> void:
 	if visible:
 		return
 	visible = true
+	if _close_btn:
+		var t := MobileUI.touch_enabled()
+		_close_btn.text = "Close" if t else "Close (Esc)"
+		_close_btn.custom_minimum_size = Vector2(160, 76) if t else Vector2.ZERO
 	GameState.push_ui(panel_id)
 	AudioManager.play_sfx("ui")
 	refresh()

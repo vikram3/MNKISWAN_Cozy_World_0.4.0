@@ -14,6 +14,12 @@ Extract the whole ZIP first. On Windows, run `MNKISWAN_Cozy_World.exe`; Godot is
 
 To edit, extract the **source ZIP**, open Godot **4.7.2**, choose **Import**, select `project.godot`, then press **F5**. Both desktop export presets are included; install the matching 4.7.2 export templates to build locally. The Compatibility renderer supports OpenGL 3.3 hardware.
 
+## Phones & tablets
+
+Touch controls turn on automatically on phones and touchscreens: a floating joystick, swipe-to-look with pinch zoom, thumb buttons, a minimap with waypoints and personal map pins, and a first-play tutorial. The layout stays notch-safe at any aspect ratio. See the [mobile guide](docs/MOBILE.md). An Android export preset is included.
+
+![Phone layout](docs/screenshots/mobile_phone_20x9_notch.png)
+
 ## Controls
 
 | Input | Action |
@@ -30,6 +36,7 @@ To edit, extract the **source ZIP**, open Godot **4.7.2**, choose **Import**, se
 | Tab / I, J, M | Inventory, journal, map |
 | H | Our days together / Village day |
 | Esc | Pause, close a menu, cancel fishing or finish a shared ritual |
+| Click minimap / map | Open the full map / drop or clear your own waypoint pin |
 
 Actions can be rebound in Settings. Flight has no stamina penalty. Release movement to hover; press F for a gentle landing. Land before switching. Mnki waits on the ground while Swan flies and rejoins after she lands. Low ceilings block takeoff, solid roofs stop ascent, and flight stays within the village boundary and a 24 m altitude limit.
 

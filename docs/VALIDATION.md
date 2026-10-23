@@ -13,7 +13,9 @@ Godot **4.7.2.stable.official.ed1daf0bf**, Compatibility renderer. Audit date: 2
 - Living Village regression: **195 passed, 0 failed**.
 - Daily life and shared moments: **117 passed, 0 failed**.
 
-That is **410 gameplay assertions**, plus parse/load and UI-flow verification. See [test-results.txt](test-results.txt).
+- Mobile & touch UI: **64 passed, 0 failed** (see [MOBILE.md](MOBILE.md)); the rendered phone/tablet gallery layout checks pass at 20:9 (notched), 16:9, 4:3 and desktop.
+
+That is **410 gameplay assertions** plus 64 mobile checks, plus parse/load and UI-flow verification. See [test-results.txt](test-results.txt).
 
 The new suite checks all 31 home assignments/routes and actual evening-to-home travel; sleeping visibility/collision; morning wake and stable household assignment when loading at night; catch, benches, fields, lunch, garden dates, swing seat height, opening boundaries and late-market activity. It checks both standing positions at all six shared locations, both-actor participation, movement/menu cancellation, switch guards, swapped speaker identity, airborne rejection, repeat-safe memories, panel-before-memory completion, save serialization, upper-floor support, walking all the way up the stairs and 30/120 FPS pose convergence.
 

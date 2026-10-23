@@ -54,7 +54,7 @@ func _ready() -> void:
 	GameState.world.flag_set.connect(_on_flag)
 	TimeManager.running = true
 	AudioManager.start_world_audio()
-	if DisplayServer.get_name() != "headless":
+	if DisplayServer.get_name() != "headless" and not MobileUI.touch_enabled():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	if loading:
 		SaveManager.clear_pending()
@@ -77,7 +77,7 @@ func _start_new_story() -> void:
 	GameState.world.discover_region("sunshine_forest")
 	GameState.begin_new_story()
 	await get_tree().create_timer(0.8).timeout
-	swan.say("Good morning! Come say hi — press E near me.", 6.0)
+	swan.say(MobileUI.adapt_text("Good morning! Come say hi — press E near me."), 6.0)
 
 
 # --- Environment & day cycle ---------------------------------------------------------------------

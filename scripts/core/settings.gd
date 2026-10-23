@@ -22,6 +22,16 @@ const DEFAULTS := {
 	"camera_shake": true,
 	"window_mode": "windowed",
 	"text_scale": 1.0,
+	"touch_controls": "auto",   # auto | on | off
+	"touch_scale": 1.0,
+	"touch_opacity": 0.85,
+	"touch_look_sensitivity": 1.0,
+	"stick_sprint": true,
+	"haptics": true,
+	"minimap": true,
+	"minimap_rotate": true,
+	"waypoints": true,
+	"tutorial_done": false,
 }
 
 ## action id -> [label, default physical keycodes / mouse buttons]

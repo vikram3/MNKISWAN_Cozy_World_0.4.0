@@ -39,7 +39,7 @@ func _ready() -> void:
 	var t2 := UITheme.label("COZY WORLD", 54, UITheme.FOREST, true)
 	left.add_child(t2)
 	left.add_child(UITheme.label("Two friends. One village. A whole sky to explore.", 26, UITheme.MUTED))
-	left.add_child(UITheme.label("Play as Mnki & Swan · Switch with C · Swan flies with F", 21, UITheme.FOREST))
+	left.add_child(UITheme.label("Play as Mnki & Swan · Tap a portrait to switch · Swan can fly" if MobileUI.touch_enabled() else "Play as Mnki & Swan · Switch with C · Swan flies with F", 21, UITheme.FOREST))
 	var spacer := Control.new()
 	spacer.custom_minimum_size.y = 30
 	left.add_child(spacer)
@@ -52,7 +52,8 @@ func _ready() -> void:
 	_add_btn("New Game", _new_game)
 	_add_btn("Settings", func(): _settings.open())
 	_add_btn("Credits", func(): _credits.visible = true)
-	_add_btn("Quit", func(): get_tree().quit())
+	if not OS.has_feature("ios"):
+		_add_btn("Quit", func(): get_tree().quit())
 	(_buttons.get_child(0) as Button).call_deferred("grab_focus")
 	var ver := UITheme.label("Days Together · v0.4.0 · Single-player", 18, UITheme.MUTED)
 	UITheme.place(ver, Control.PRESET_BOTTOM_LEFT, Vector2(24, -44))

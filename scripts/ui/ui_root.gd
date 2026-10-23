@@ -4,6 +4,8 @@ extends CanvasLayer
 
 var together: TogetherPanel
 var hud: HUD
+var touch: TouchControls
+var tutorial: Tutorial
 var inventory: InventoryPanel
 var shop: ShopPanel
 var storage: StoragePanel
@@ -20,6 +22,8 @@ func _ready() -> void:
 	layer = 10
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	hud = HUD.new(); add_child(hud)
+	touch = TouchControls.new(); add_child(touch)
+	tutorial = Tutorial.new(); add_child(tutorial)
 	together = TogetherPanel.new(); add_child(together)
 	inventory = InventoryPanel.new(); add_child(inventory)
 	shop = ShopPanel.new(); add_child(shop)
@@ -34,6 +38,21 @@ func _ready() -> void:
 	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_fade)
+	get_parent().add_child.call_deferred(Waypoints.new())
+	if not bool(Settings.get_value("tutorial_done")):
+		_begin_tutorial_later()
+
+
+func _begin_tutorial_later() -> void:
+	await get_tree().create_timer(1.6).timeout
+	if is_inside_tree() and not tutorial.running and not bool(Settings.get_value("tutorial_done")):
+		tutorial.start()
+
+
+## Settings → "Replay tutorial".
+func replay_tutorial() -> void:
+	Settings.set_value("tutorial_done", false)
+	tutorial.start()
 
 
 func _panels() -> Array:

@@ -49,15 +49,17 @@ static func build(scale: float) -> Theme:
 	t.set_color("default_color", "RichTextLabel", FOREST)
 	t.set_stylebox("panel", "Panel", box(CREAM, 22, SAGE, 3, 18))
 	t.set_stylebox("panel", "PanelContainer", box(CREAM, 22, SAGE, 3, 18))
-	var btn := box(SAGE, 14, Color(0, 0, 0, 0), 0, 12)
+	# Thumb-friendly padding on touch screens (taller hit areas without changing layouts).
+	var bp := 20 if MobileUI.touch_enabled() else 12
+	var btn := box(SAGE, 14, Color(0, 0, 0, 0), 0, bp)
 	btn.shadow_size = 0
-	var btn_h := box(GOLD.lightened(0.35), 14, GOLD, 2, 12)
+	var btn_h := box(GOLD.lightened(0.35), 14, GOLD, 2, bp)
 	btn_h.shadow_size = 0
-	var btn_p := box(GOLD, 14, WOOD, 2, 12)
+	var btn_p := box(GOLD, 14, WOOD, 2, bp)
 	btn_p.shadow_size = 0
-	var btn_d := box(Color(0.87, 0.87, 0.84), 14, Color(0, 0, 0, 0), 0, 12)
+	var btn_d := box(Color(0.87, 0.87, 0.84), 14, Color(0, 0, 0, 0), 0, bp)
 	btn_d.shadow_size = 0
-	var btn_f := box(Color(0, 0, 0, 0), 14, CORAL, 3, 12)
+	var btn_f := box(Color(0, 0, 0, 0), 14, CORAL, 3, bp)
 	btn_f.shadow_size = 0
 	t.set_stylebox("normal", "Button", btn)
 	t.set_stylebox("hover", "Button", btn_h)

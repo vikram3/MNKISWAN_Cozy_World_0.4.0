@@ -61,7 +61,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			distance = clampf(distance - 0.4, MIN_DIST, MAX_DIST)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			distance = clampf(distance + 0.4, MIN_DIST, MAX_DIST)
-		elif event.button_index == MOUSE_BUTTON_LEFT and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and GameState.in_world:
+		elif event.button_index == MOUSE_BUTTON_LEFT and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and GameState.in_world and not MobileUI.touch_enabled():
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
@@ -81,6 +81,25 @@ func _process(delta: float) -> void:
 	var goal := target.global_position + Vector3(0, 1.25, 0)
 	var k := 1.0 if Settings.get_value("reduced_motion") else clampf(delta * 10.0, 0.0, 1.0)
 	global_position = global_position.lerp(goal, k)
+
+
+## Touch look: drag delta already scaled to degrees (TouchControls applies sensitivity).
+func touch_look(deg: Vector2) -> void:
+	if GameState.is_ui_blocking():
+		return
+	var inv := -1.0 if Settings.get_value("invert_y") else 1.0
+	yaw.rotation_degrees.y -= deg.x
+	_pitch_deg = clampf(_pitch_deg - deg.y * inv, -65.0, 25.0)
+	pitch.rotation_degrees.x = _pitch_deg
+
+
+## Pinch zoom: positive = farther.
+func touch_zoom(amount: float) -> void:
+	distance = clampf(distance + amount, MIN_DIST, MAX_DIST)
+
+
+func yaw_radians() -> float:
+	return yaw.rotation.y
 
 
 ## Horizontal camera basis used for camera-relative movement.

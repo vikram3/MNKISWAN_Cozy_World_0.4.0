@@ -85,7 +85,7 @@ func clear_ui() -> void:
 func _update_ui_mode() -> void:
 	var blocking := is_ui_blocking()
 	if in_world and DisplayServer.get_name() != "headless":
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if blocking else Input.MOUSE_MODE_CAPTURED
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if blocking or MobileUI.touch_enabled() else Input.MOUSE_MODE_CAPTURED
 	ui_blocking_changed.emit(blocking)
 
 

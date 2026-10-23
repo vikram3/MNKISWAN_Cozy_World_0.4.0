@@ -117,7 +117,8 @@ func _show_line() -> void:
 		speaker = raw.substr(0, colon)
 		body = raw.substr(colon + 2)
 	_name.text = speaker
-	_text.text = body
+	_text.text = MobileUI.adapt_text(body)
+	_cont.text = MobileUI.adapt_text("E / Space / Click to continue")
 	_text.visible_ratio = 0.0
 	_typing = 0.0
 	if Settings.get_value("reduced_motion"):
@@ -147,6 +148,8 @@ func _show_line() -> void:
 		for i in choices.size():
 			var idx := i
 			var b := UITheme.button("%d. %s" % [i + 1, String(choices[i])], func(): _choose(idx), 260)
+			if MobileUI.touch_enabled():
+				b.custom_minimum_size.y = 76
 			_choices.add_child(b)
 		_focus_choice.call_deferred(_choices.get_child(0))
 
