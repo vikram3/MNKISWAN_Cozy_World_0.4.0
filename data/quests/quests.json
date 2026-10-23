@@ -1,0 +1,154 @@
+{
+  "schema": 1,
+  "quests": [
+    {
+      "id": "q_arrival", "title": "A Morning Together", "giver": "swan", "main": true, "auto_start": true, "prereq": [],
+      "summary": "Mnki and Swan wake in the Sunshine Forest clearing. Time to head home to the treehouse.",
+      "objectives": [
+        {"type": "talk", "npc": "swan", "text": "Say good morning to your friend"},
+        {"type": "collect", "item": "item_berry", "qty": 2, "text": "Gather berries in the clearing"},
+        {"type": "interact", "targets": ["gate_main"], "text": "Open the Guardian Gate (south of the clearing)"},
+        {"type": "discover", "region": "treehouse", "text": "Walk home to the treehouse"}
+      ],
+      "talk_lines": {"0": ["Swan: Good morning, sleepyhead! The forest smells like berries today.", "Swan: Let's pick a few on the way home. The treehouse is past the Guardian Gate — follow the path south."]},
+      "complete": ["Swan: Home! I'll never get tired of this door.", "Swan: Thronn sent word — the animals miss us. Shall we visit the farm when you're ready?"],
+      "rewards": {"coins": 5}
+    },
+    {
+      "id": "q_gentle_hands", "title": "Gentle Hands", "giver": "swan", "main": true, "auto_start": true, "prereq": ["q_arrival"],
+      "summary": "Thronn asked the duo to help with the animals at the farm (far south, past the colonies).",
+      "objectives": [
+        {"type": "talk", "npc": "thronn", "text": "Visit Thronn at the Animal Farm"},
+        {"type": "care", "action": "pet", "qty": 1, "text": "Gently pet an animal"},
+        {"type": "care", "action": "feed", "qty": 1, "text": "Take feed from the bin and feed an animal"}
+      ],
+      "talk_lines": {"0": ["Thronn: There they are! No need to rush. Hold your hand low and let them come to you.", "Thronn: Pet one first, then grab some Hay & Grain from the feed bin by the barn."]},
+      "complete": ["Thronn: See? They already like you. Here — seeds from my garden. Bao can show you the plots.", "Swan: The chicken bobbed its head at you! That's basically a hug."],
+      "rewards": {"coins": 10, "items": {"seed_tomato": 2, "seed_rice": 3}, "flags": ["met_thronn"]}
+    },
+    {
+      "id": "q_open_stall", "title": "Open the Stall", "giver": "swan", "main": true, "auto_start": true, "prereq": ["q_gentle_hands"],
+      "summary": "Our little fruit stall in the Market Square has been quiet. Let's open it again.",
+      "objectives": [
+        {"type": "talk", "npc": "tamsin", "text": "Talk to Tamsin the grocer at the market"},
+        {"type": "sell", "value": 10, "text": "Sell goods worth 10 coins at our fruit stall"}
+      ],
+      "talk_lines": {"0": ["Tamsin: Your stall! I kept it dusted. Choose what to sell — you'll see every price before you confirm.", "Tamsin: Berries are 2 coins, mangoes 5, fish fetch more. No pressure."]},
+      "complete": ["Swan: Our first sale! We should put some coins back into the stall... or a rug. Maybe both, eventually."],
+      "rewards": {"coins": 10, "flags": ["stall_open"]}
+    },
+    {
+      "id": "q_village_basket", "title": "A Basket for the Village", "giver": "swan", "main": true, "auto_start": true, "prereq": ["q_open_stall"],
+      "summary": "The market feels sleepy. Mnki and Swan prepare a basket of fresh things for the neighbours.",
+      "objectives": [
+        {"type": "collect", "item": "item_berry", "qty": 3, "text": "Gather 3 berries (Berry Maze)"},
+        {"type": "collect", "item": "item_mango", "qty": 1, "text": "Gather 1 mango (Tropical Fruit Forest)"},
+        {"type": "care", "action": "any", "qty": 1, "text": "Care for an animal with Thronn"},
+        {"type": "deliver", "npc": "stall_basket", "items": {"item_berry": 3, "item_mango": 1}, "text": "Prepare the basket at our fruit stall"},
+        {"type": "talk", "npc": "elder", "text": "Deliver the basket to Elder Maple in the park"}
+      ],
+      "offer": ["Swan: The market feels a little sleepy today. Shall we bring something fresh for the neighbours?"],
+      "talk_lines": {"4": ["Elder Maple: A basket — for all of us? Oh, you two.", "Elder Maple: Let's set it right here. Look at everyone gathering already."]},
+      "complete": ["Elder Maple: The park hasn't felt this alive in a long while. Please, take this charm.", "Swan: Look — they're planting the old flower bed again!"],
+      "rewards": {"coins": 25, "items": {"seed_sunflower": 2, "key_leaf_charm": 1}, "flags": ["park_restored"]}
+    },
+    {
+      "id": "q_mend_bridge", "title": "Mend the Old Bridge", "giver": "elder", "main": true, "auto_start": false, "prereq": ["q_village_basket"],
+      "summary": "The old stream bridge between Colony Two and the Tropical Fruit Forest is broken. Odo sells timber planks.",
+      "objectives": [
+        {"type": "deliver", "npc": "bridge_site", "items": {"item_plank": 4}, "text": "Bring 4 timber planks to the broken bridge (Odo sells them)"}
+      ],
+      "offer": ["Elder Maple: The stream bridge east of Colony Two used to bring everyone together.", "Elder Maple: Four good planks would mend it. Odo at the market sells them — whenever you have time."],
+      "complete": ["Swan: The bridge is back! Now the colonies and the orchard are neighbours again.", "Mnki: Shortcut unlocked!"],
+      "rewards": {"coins": 15, "flags": ["bridge_restored"]}
+    },
+    {
+      "id": "q_guardians", "title": "Land, Water, Forest", "giver": "elder", "main": true, "auto_start": false, "prereq": ["q_mend_bridge", "q_picnic"],
+      "summary": "Mira's clue says the three Guardian statues each hold a message. Read all three plaques, then tell the Elder.",
+      "objectives": [
+        {"type": "interact", "targets": ["statue_land", "statue_water", "statue_forest"], "text": "Read the three Guardian plaques"},
+        {"type": "talk", "npc": "elder", "text": "Tell Elder Maple what the Guardians said"}
+      ],
+      "offer": ["Elder Maple: You've cared for land, water and the living things. Have you read what the Guardians say?"],
+      "talk_lines": {"1": ["Mnki: The land asks to be tended, the water to be kept clear, the forest to be shared.", "Elder Maple: Then you already understand. Tonight, the village celebrates — together."]},
+      "complete": ["Swan: Lanterns in the park... for everyone. This is my favourite day.", "Elder Maple: Keep this token. Land, Water, Forest — and friends."],
+      "rewards": {"coins": 30, "items": {"key_guardian_token": 1}, "flags": ["festival"]}
+    },
+    {
+      "id": "q_first_harvest", "title": "First Harvest", "giver": "bao", "main": false, "auto_start": false, "prereq": ["q_gentle_hands"],
+      "summary": "Bao will teach crop stages: plant, water each day, sleep, harvest.",
+      "objectives": [
+        {"type": "harvest", "crop": "rice", "qty": 1, "text": "Plant rice, water it each day and harvest it"},
+        {"type": "talk", "npc": "bao", "text": "Show Bao your rice"}
+      ],
+      "offer": ["Bao: Want to learn the plots? Plant rice, water it, sleep. A watered plot grows one stage each morning.", "Bao: Here are a few seedlings to start."],
+      "on_accept": {"items": {"seed_rice": 2}},
+      "talk_lines": {"1": ["Bao: Look at that bundle! You're a farmer now — a small one, but a farmer."]},
+      "complete": ["Bao: Rice, greens, carrots, tomatoes, sunflowers — Tamsin sells all the seeds."],
+      "rewards": {"coins": 20, "items": {"seed_lettuce": 3, "seed_carrot": 2}}
+    },
+    {
+      "id": "q_garden_colors", "title": "Colours for the Garden", "giver": "rosa", "main": false, "auto_start": false, "prereq": ["q_arrival"],
+      "summary": "Rosa needs daisies to rebalance a flower bed.",
+      "objectives": [
+        {"type": "deliver", "npc": "rosa", "items": {"item_flower": 4}, "text": "Bring Rosa 4 Garden Daisies"}
+      ],
+      "offer": ["Rosa: That bed by the trellis is lopsided. Four daisies would balance it — gather them from the patches here or in the forest."],
+      "complete": ["Rosa: Perfect balance. Here, seeds for your own plots."],
+      "rewards": {"coins": 8, "items": {"seed_sunflower": 2, "seed_carrot": 2}}
+    },
+    {
+      "id": "q_something_unusual", "title": "Something Unusual", "giver": "ivo", "main": false, "auto_start": false, "prereq": ["q_garden_colors"],
+      "summary": "Ivo wants a Moonbell — a rare blue flower said to grow somewhere inside the Berry Maze.",
+      "objectives": [
+        {"type": "deliver", "npc": "ivo", "items": {"item_moonbell": 1}, "text": "Find a Moonbell (hidden in the Berry Maze) for Ivo"}
+      ],
+      "offer": ["Ivo: Rosa likes balance. I like surprises. Somewhere in the Berry Maze there's a Moonbell. Bring me one?"],
+      "complete": ["Ivo: It glows! Take my paper lantern — it'll look lovely in your treehouse."],
+      "rewards": {"coins": 10, "items": {"decor_lantern": 1}}
+    },
+    {
+      "id": "q_patience", "title": "Patience at the Pond", "giver": "lumi", "main": false, "auto_start": false, "prereq": ["q_arrival"],
+      "summary": "Lumi teaches the bite cue: wait, watch the bobber, press E when it dips.",
+      "objectives": [
+        {"type": "catch", "qty": 1, "text": "Catch a fish at a fishing spot"},
+        {"type": "talk", "npc": "lumi", "text": "Tell Lumi about your catch"}
+      ],
+      "offer": ["Lumi: ...Fishing? Stand on the bank and press E. When the bobber dips and splashes, press E again. That's all."],
+      "talk_lines": {"1": ["Lumi: A fine fish. You were patient."]},
+      "complete": ["Lumi: Different water, different fish. The falls hide trout."],
+      "rewards": {"coins": 10, "flags": ["fisher_friend"]}
+    },
+    {
+      "id": "q_lost_chime", "title": "The Lost Wind Chime", "giver": "pip", "main": false, "auto_start": false, "prereq": ["q_arrival"],
+      "summary": "Pip lost a shell wind chime while picking fruit in the Tropical Fruit Forest.",
+      "objectives": [
+        {"type": "collect", "item": "key_windchime", "qty": 1, "text": "Find Pip's wind chime in the Tropical Fruit Forest"},
+        {"type": "deliver", "npc": "pip", "items": {"key_windchime": 1}, "text": "Return the wind chime to Pip"}
+      ],
+      "offer": ["Pip: I lost my wind chime near the banana plants! It's small and it tinkles. Could you look?"],
+      "complete": ["Pip: My chime! Listen — it's singing again. Please take this flowerpot from our garden!"],
+      "rewards": {"coins": 12, "items": {"decor_flowerpot": 1}}
+    },
+    {
+      "id": "q_picnic", "title": "Pondside Picnic", "giver": "mira", "main": false, "auto_start": false, "prereq": ["q_arrival"],
+      "summary": "Mira is planning a quiet picnic and needs a fish, a banana and a coconut.",
+      "objectives": [
+        {"type": "deliver", "npc": "mira", "items": {"cat:fish": 1, "item_banana": 1, "item_coconut": 1}, "text": "Bring Mira 1 fish, 1 banana and 1 coconut"}
+      ],
+      "offer": ["Mira: I'm planning a picnic by the pond. One fish, one banana, one coconut — would you help?"],
+      "complete": ["Mira: Wonderful. A secret for you: the Water Guardian is smiling. Read the plaques at the gate — all three.", "Swan: A Guardian clue! Let's tell the Elder after we've read them."],
+      "rewards": {"coins": 30, "flags": ["clue_water"]}
+    },
+    {
+      "id": "q_bigger_stall", "title": "A Bigger Stall", "giver": "tamsin", "main": false, "auto_start": false, "prereq": ["q_open_stall"],
+      "summary": "Tamsin thinks the stall could use a second shelf and an order board.",
+      "objectives": [
+        {"type": "stall_level", "level": 1, "text": "Upgrade the fruit stall (Upgrade tab, 50 coins)"}
+      ],
+      "offer": ["Tamsin: A second shelf and an order board would let you take market orders. Fifty coins — whenever you're ready."],
+      "complete": ["Tamsin: Now that's a stall! Check the order board each morning."],
+      "rewards": {"coins": 15}
+    }
+  ]
+}

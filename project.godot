@@ -1,0 +1,54 @@
+; MNKISWAN: Cozy World — Godot 4.7.2 project
+; Engine pin: Godot 4.7.2-stable (see docs/README.md)
+
+config_version=5
+
+[application]
+
+config/name="MNKISWAN: Cozy World"
+config/description="A tiny living world, built around two best friends — Mnki and Swan."
+config/version="0.4.0-days-together"
+run/main_scene="res://scenes/menus/title_menu.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+boot_splash/bg_color=Color(0.984, 0.969, 0.929, 1)
+config/icon="res://icon.svg"
+
+[autoload]
+
+Settings="*res://scripts/core/settings.gd"
+TimeManager="*res://scripts/core/time_manager.gd"
+AudioManager="*res://scripts/core/audio_manager.gd"
+GameState="*res://scripts/core/game_state.gd"
+SaveManager="*res://scripts/core/save_manager.gd"
+SceneRouter="*res://scripts/core/scene_router.gd"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/window_width_override=1600
+window/size/window_height_override=900
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[layer_names]
+
+3d_physics/layer_1="world"
+3d_physics/layer_2="player"
+3d_physics/layer_3="companion"
+3d_physics/layer_4="npc_animal"
+3d_physics/layer_5="interactable"
+3d_physics/layer_6="camera_blocker"
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+anti_aliasing/quality/msaa_3d=2
+lights_and_shadows/directional_shadow/size=4096
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
+environment/defaults/default_clear_color=Color(0.984, 0.969, 0.929, 1)

@@ -1,0 +1,10 @@
+# Godot 4
+.godot/
+*.import.bak
+export/
+*.tmp
+builds/
+*.log
+
+# Documentation screenshots do not need checked-in Godot import descriptors.
+docs/screenshots/*.png.import

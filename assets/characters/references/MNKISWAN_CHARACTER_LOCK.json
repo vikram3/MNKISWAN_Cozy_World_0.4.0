@@ -1,0 +1,64 @@
+{
+  "name": "MNKISWAN official visual consistency lock",
+  "version": "1.0",
+  "source": "MNKISWAN_Sticker_Pack.zip",
+  "reference_priority": [
+    "original individual sticker images",
+    "couple stickers with everyday outfits",
+    "established written character bible for personality and world canon"
+  ],
+  "mnki": {
+    "default_reference": "characters/mnki/mnki_pose_01.webp",
+    "secondary_reference": "characters/mnki/mnki_pose_10.webp",
+    "must_keep": [
+      "huge fluffy dark brown tousled hair",
+      "gold double inward spiral headband",
+      "big brown eyes and warm rosy face",
+      "bright red hoodie with small monkey-face chest emblem",
+      "loose nearly black cargo trousers",
+      "red-and-white thick sneakers",
+      "long brown curled monkey tail"
+    ],
+    "role": "curious and free-spirited monkey king who learns responsibility without losing autonomy"
+  },
+  "swan": {
+    "default_reference": "characters/swan/swan_pose_01.webp",
+    "secondary_reference": "characters/swan/swan_pose_10.webp",
+    "must_keep": [
+      "very long thick wavy chestnut-dark brown hair with bangs",
+      "gold small crown",
+      "white swan hood with orange beak and dark swan-eye markings",
+      "big brown eyes and rosy cheeks",
+      "white hoodie with pom-pom ties",
+      "pastel pink pleated skirt",
+      "white feather wings",
+      "white socks and blue-white thick sneakers"
+    ],
+    "role": "thoughtful compassionate swan princess who seeks responsible leadership and keeps her independent agency"
+  },
+  "rendering": {
+    "style": "warm 2D expressive chibi illustration",
+    "features": [
+      "oversized heads",
+      "petite bodies",
+      "warm brown linework",
+      "gentle pastel painterly shading",
+      "warm blush",
+      "readable emotional poses"
+    ]
+  },
+  "variants_not_default": [
+    "sleepwear pose_18",
+    "wedding scene couple_051",
+    "alternate close-up couple_052",
+    "more detailed look couple_053"
+  ],
+  "ambiguities_for_approval": [
+    "MNKI skin hue: sticker warm tan/peach vs written warm brown",
+    "Swan hoodie motifs vary across sources",
+    "some couple stickers differ in detail and hairstyle stylization"
+  ],
+  "required_manual_review": true,
+  "primary_source_is_user_provided": true,
+  "accessibility_note": "Avoid stereotyping or mapping differences in appearance to character roles."
+}
