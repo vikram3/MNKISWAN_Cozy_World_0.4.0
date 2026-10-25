@@ -89,6 +89,14 @@ class MapCanvas extends Control:
 			draw_circle(at + Vector2(-3, -2), 4, pink)
 			draw_circle(at + Vector2(3, -2), 4, pink)
 			draw_colored_polygon(PackedVector2Array([at + Vector2(-7, -1), at + Vector2(7, -1), at + Vector2(0, 8)]), pink)
+		# New requests
+		for npc in Waypoints.request_givers(get_tree()):
+			var gp := _w2m((npc as Node3D).global_position)
+			draw_circle(gp, 13, Color("f0b43c"))
+			draw_arc(gp, 13, 0, TAU, 24, Color.WHITE, 2.5, true)
+			draw_rect(Rect2(gp + Vector2(-2, -8), Vector2(4, 10)), Color("5a3d12"))
+			draw_circle(gp + Vector2(0, 6), 2.2, Color("5a3d12"))
+			draw_string(font, gp + Vector2(16, 6), NpcDB.display_name((npc as NpcCharacter).npc_id), HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("8a5a12"))
 		# Personal pin
 		if Waypoints.custom_pin != null:
 			var cp := _w2m(Waypoints.custom_pin)
@@ -114,7 +122,7 @@ class MapCanvas extends Control:
 				var pos := _w2m(SkyTrail.STOPS[i])
 				draw_arc(pos, 6, 0, TAU, 20, Color("bd8a2e"), 2.5)
 		draw_string(font, Vector2(16, size.y - 36), "Teal: gathering places · Pink hearts: shared rituals · Gold centres: completed", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("173b31"))
-		draw_string(font, Vector2(16, size.y - 14), "Arrow: you · White: friend · Gold rings: sky feathers · Coral: objective · Tap the map to drop a pin", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("173b31"))
+		draw_string(font, Vector2(16, size.y - 14), "Arrow: you · White: friend · Gold rings: feathers · Coral: objective · Gold !: new request · Tap to pin", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("173b31"))
 
 	func _quest_target():
 		return Waypoints.quest_target(get_tree())

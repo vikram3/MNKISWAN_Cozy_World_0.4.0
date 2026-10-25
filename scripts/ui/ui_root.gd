@@ -88,7 +88,12 @@ func _input(event: InputEvent) -> void:
 		return
 	if top != null and top != inventory and top != journal and top != map and top != together:
 		return
-	if event.is_action_pressed("together"):
+	if top == null and event.is_action_pressed("next_quest"):
+		if GameState.quests.active_ids().size() > 1:
+			GameState.quests.cycle_tracked()
+			AudioManager.play_sfx("ui")
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("together"):
 		_toggle(together)
 	elif event.is_action_pressed("inventory"):
 		_toggle(inventory)

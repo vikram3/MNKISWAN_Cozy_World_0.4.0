@@ -9,6 +9,7 @@ var _coin_label: Label
 var _seed_label: Label
 var _obj_title: Label
 var _obj_text: Label
+var _obj_more: Label
 var _obj_box: PanelContainer
 var _prompt_box: PanelContainer
 var _prompt_key: Label
@@ -84,6 +85,20 @@ func _ready() -> void:
 	_obj_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_obj_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	ov.add_child(_obj_text)
+	_obj_more = UITheme.label("", 18, UITheme.MUTED)
+	_obj_more.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_obj_more.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	ov.add_child(_obj_more)
+	# Tap / click the request card to switch which request is tracked.
+	_obj_box.mouse_filter = Control.MOUSE_FILTER_STOP
+	_obj_box.add_to_group("touch_passthrough")
+	_obj_box.gui_input.connect(func(ev: InputEvent):
+		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT and not GameState.is_ui_blocking():
+			if GameState.quests.active_ids().size() > 1:
+				GameState.quests.cycle_tracked()
+				AudioManager.play_sfx("ui")
+				MobileUI.vibrate(10)
+			_obj_box.accept_event())
 	# --- Bottom-centre prompt -------------------------------------------------------------------
 	_prompt_box = PanelContainer.new()
 	_prompt_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -145,6 +160,7 @@ func _ready() -> void:
 	GameState.toast.connect(_on_toast)
 	GameState.economy.coins_changed.connect(func(_o, _n): _update_coins())
 	GameState.quests.tracked_changed.connect(_update_objective)
+	GameState.inventory.inventory_changed.connect(func(_i, _d): _update_objective())
 	GameState.fishing_state_changed.connect(_on_fish)
 	GameState.seed_selection_changed.connect(func(_s): _update_seed())
 	GameState.inventory.inventory_changed.connect(func(_i, _d): _update_seed())
@@ -204,7 +220,7 @@ func _process(delta: float) -> void:
 			_connected = true
 	_time_label.text = "Day %d · %s" % [TimeManager.day, TimeManager.clock_string()]
 	_period_label.text = TimeManager.period_name() + (" · Lantern market open" if DailyLifeData.market_open(TimeManager.hour()) else "") + ("" if MobileUI.touch_enabled() else "\n" + Settings.binding_label("together") + "  Our days together")
-	_obj_box.visible = not bool(Settings.get_value("quiet_hud")) and (_obj_title.text != "FREE TIME" or GameState.quests.done_ids().size() > 0)
+	_obj_box.visible = not bool(Settings.get_value("quiet_hud")) and (_obj_title.text != "FREE TIME" or GameState.quests.done_ids().size() > 0 or _obj_more.text != "")
 	# Coin count changes subtly
 	if _coin_shown != GameState.economy.coins:
 		_coin_shown += signi(GameState.economy.coins - _coin_shown) * maxi(1, absi(GameState.economy.coins - _coin_shown) / 8)
@@ -310,15 +326,38 @@ func _update_seed() -> void:
 
 
 func _update_objective() -> void:
-	var q := GameState.quests.tracked_quest()
+	var qs := GameState.quests
+	var q := qs.tracked_quest()
+	_obj_more.text = _more_text(q)
+	_obj_more.visible = _obj_more.text != ""
 	if q == "":
-		_obj_box.visible = GameState.quests.done_ids().size() > 0
+		_obj_box.visible = qs.done_ids().size() > 0 or _obj_more.text != ""
 		_obj_title.text = "FREE TIME"
 		_obj_text.text = "Explore, fish, farm, decorate — check the community board for requests."
 		return
 	_obj_box.visible = true
-	_obj_title.text = String(GameState.quests.defs[q].title).to_upper()
-	_obj_text.text = GameState.quests.objective_text(q)
+	_obj_title.text = String(qs.defs[q].title).to_upper()
+	_obj_text.text = MobileUI.adapt_text(qs.objective_text(q))
+
+
+## Second line of the request card: how many requests are running (and how to switch) plus
+## who has new requests waiting — so a slow request never hides what comes next.
+func _more_text(tracked: String) -> String:
+	var qs := GameState.quests
+	var parts: Array = []
+	var act := qs.active_ids()
+	if act.size() > 1:
+		var how := "tap to switch" if MobileUI.touch_enabled() else "%s to switch" % Settings.binding_label("next_quest").get_slice(" / ", 0)
+		parts.append("Request %d of %d · %s" % [act.find(tracked) + 1, act.size(), how])
+	var givers: Array = []
+	for r in qs.available_requests():
+		var g := String(r.giver)
+		var nm := NpcDB.display_name(g) if NpcDB.NPCS.has(g) else g.capitalize()
+		if not givers.has(nm):
+			givers.append(nm)
+	if not givers.is_empty():
+		parts.append("New requests: %s (gold ! on the map)" % ", ".join(givers.slice(0, 4)))
+	return "\n".join(parts)
 
 
 func _on_focus(target, prompt: String, enabled: bool) -> void:
@@ -332,7 +371,25 @@ func _on_focus(target, prompt: String, enabled: bool) -> void:
 
 
 func _on_toast(text: String, kind: String) -> void:
+	# The same message again (e.g. pressing on an already-watered plot) refreshes the existing
+	# toast with a little bump instead of stacking copies.
+	var shown := MobileUI.adapt_text(text)
+	for old in _toasts.get_children():
+		if old.get_meta("text", "") == shown and not old.is_queued_for_deletion():
+			var prev: Tween = old.get_meta("tween")
+			if prev and prev.is_valid():
+				prev.kill()
+			old.modulate.a = 1.0
+			var tw0 := old.create_tween()
+			tw0.tween_property(old, "scale", Vector2(1.04, 1.04), 0.08)
+			tw0.tween_property(old, "scale", Vector2.ONE, 0.12)
+			tw0.tween_interval(3.4)
+			tw0.tween_property(old, "modulate:a", 0.0, 0.6)
+			tw0.tween_callback(old.queue_free)
+			old.set_meta("tween", tw0)
+			return
 	var pc := PanelContainer.new()
+	pc.set_meta("text", shown)
 	pc.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var col := UITheme.CREAM
 	var border := UITheme.SAGE
@@ -356,6 +413,7 @@ func _on_toast(text: String, kind: String) -> void:
 	tw.tween_interval(3.6)
 	tw.tween_property(pc, "modulate:a", 0.0, 0.6)
 	tw.tween_callback(pc.queue_free)
+	pc.set_meta("tween", tw)
 	if kind == "item":
 		AudioManager.play_sfx("pickup")
 

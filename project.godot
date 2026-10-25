@@ -1,5 +1,10 @@
-; MNKISWAN: Cozy World — Godot 4.7.2 project
-; Engine pin: Godot 4.7.2-stable (see docs/README.md)
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
 
 config_version=5
 
@@ -31,12 +36,6 @@ window/size/window_height_override=900
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=4
-window/energy_saving/keep_screen_on=true
-
-[input_devices]
-
-pointing/emulate_mouse_from_touch=true
-pointing/emulate_touch_from_mouse=false
 
 [layer_names]
 
@@ -47,18 +46,12 @@ pointing/emulate_touch_from_mouse=false
 3d_physics/layer_5="interactable"
 3d_physics/layer_6="camera_blocker"
 
-[physics]
-
-common/physics_ticks_per_second=60
-
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-anti_aliasing/quality/msaa_3d=2
-lights_and_shadows/directional_shadow/size=4096
-lights_and_shadows/directional_shadow/size.mobile=2048
+textures/vram_compression/import_etc2_astc=true
 lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
 lights_and_shadows/directional_shadow/soft_shadow_filter_quality.mobile=1
-textures/vram_compression/import_etc2_astc=true
+anti_aliasing/quality/msaa_3d=2
 environment/defaults/default_clear_color=Color(0.984, 0.969, 0.929, 1)

@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 ./tools/godot.sh --headless --editor --import --quit
 export XDG_DATA_HOME="$(mktemp -d /tmp/mnkiswan-tests.XXXXXX)"
 trap 'rm -rf "$XDG_DATA_HOME"' EXIT
-for suite in parse_all playtest flight_switch ui_flow village_life daily_life mobile_ui; do
+for suite in parse_all playtest flight_switch ui_flow village_life daily_life mobile_ui quest_tracking; do
   test_log="$XDG_DATA_HOME/$suite.log"
   if ! timeout 180 ./tools/godot.sh --headless --fixed-fps 60 "res://tests/$suite.tscn" > "$test_log" 2>&1; then
     cat "$test_log"

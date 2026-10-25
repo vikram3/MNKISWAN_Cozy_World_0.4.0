@@ -102,6 +102,12 @@ func _draw() -> void:
 				var at := _w2m(SkyTrail.STOPS[i], center, sc, c)
 				if (at - c).length() < rr:
 					draw_arc(at, 5, 0, TAU, 14, Color("bd8a2e"), 2.0, true)
+	# New-request givers
+	for npc in Waypoints.request_givers(get_tree()):
+		var at := _w2m((npc as Node3D).global_position, center, sc, c)
+		if (at - c).length() > rr:
+			at = c + (at - c).normalized() * rr
+		_bang(at, 9.0)
 	# Friend
 	if GameState.swan:
 		var at := _w2m(GameState.swan.global_position, center, sc, c)
@@ -161,6 +167,13 @@ func _draw() -> void:
 		var rect := Rect2(Vector2(c.x - w * 0.5, size.y - 18.0), Vector2(w, 30.0))
 		draw_style_box(_ribbon(), rect)
 		draw_string(font, Vector2(c.x - minf(tw, w - 24.0) * 0.5, rect.position.y + 21.0), region, HORIZONTAL_ALIGNMENT_LEFT, w - 24.0, fs, UITheme.CREAM)
+
+
+func _bang(at: Vector2, r: float) -> void:
+	draw_circle(at, r, Color("f0b43c"))
+	draw_arc(at, r, 0, TAU, 20, Color.WHITE, 2.0, true)
+	draw_rect(Rect2(at + Vector2(-1.6, -r * 0.62), Vector2(3.2, r * 0.8)), Color("5a3d12"))
+	draw_circle(at + Vector2(0, r * 0.45), 1.9, Color("5a3d12"))
 
 
 var _ribbon_sb: StyleBoxFlat

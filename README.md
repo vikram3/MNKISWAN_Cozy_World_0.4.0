@@ -37,6 +37,7 @@ Touch controls turn on automatically on phones and touchscreens: a floating joys
 | H | Our days together / Village day |
 | Esc | Pause, close a menu, cancel fishing or finish a shared ritual |
 | Click minimap / map | Open the full map / drop or clear your own waypoint pin |
+| Q (or tap the request card) | Switch which request the HUD tracks |
 
 Actions can be rebound in Settings. Flight has no stamina penalty. Release movement to hover; press F for a gentle landing. Land before switching. Mnki waits on the ground while Swan flies and rejoins after she lands. Low ceilings block takeoff, solid roofs stop ascent, and flight stays within the village boundary and a 24 m altitude limit.
 

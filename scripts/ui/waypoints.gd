@@ -13,6 +13,8 @@ static var custom_pin = null
 static var _ground_cache: Dictionary = {}
 
 var _beams: Dictionary = {}  # kind -> Node3D
+var _bangs: Dictionary = {}  # npc node -> Label3D
+var _giver_t := 0.0
 var _t := 0.0
 
 
@@ -73,6 +75,22 @@ static func quest_target(tree: SceneTree):
 	return null
 
 
+## NPCs who have a new request to offer (gold "!" on the map, minimap and above their heads).
+static func request_givers(tree: SceneTree) -> Array:
+	var out: Array = []
+	if tree == null or GameState.quests == null:
+		return out
+	var ids := {}
+	for r in GameState.quests.available_requests():
+		ids[String(r.giver)] = true
+	if ids.is_empty():
+		return out
+	for n in tree.get_nodes_in_group("interactable"):
+		if n is NpcCharacter and ids.has((n as NpcCharacter).npc_id) and (n as Node3D).is_visible_in_tree():
+			out.append(n)
+	return out
+
+
 ## Region centres are stored at y=0; find the real ground (cached) so markers sit on terrain.
 static func _grounded(tree: SceneTree, p: Vector3) -> Vector3:
 	if absf(p.y) > 0.01:
@@ -128,6 +146,36 @@ func _process(delta: float) -> void:
 		if not seen.has(k):
 			(_beams[k] as Node3D).queue_free()
 			_beams.erase(k)
+	_update_bangs(delta)
+
+
+func _update_bangs(delta: float) -> void:
+	_giver_t -= delta
+	if _giver_t <= 0.0:
+		_giver_t = 0.5
+		var givers := request_givers(get_tree()) if bool(Settings.get_value("waypoints")) else []
+		for npc in _bangs.keys():
+			if not is_instance_valid(npc) or not givers.has(npc):
+				if is_instance_valid(_bangs[npc]):
+					(_bangs[npc] as Node).queue_free()
+				_bangs.erase(npc)
+		for npc in givers:
+			if not _bangs.has(npc):
+				var l := Label3D.new()
+				l.text = "!"
+				l.font_size = 120
+				l.outline_size = 22
+				l.modulate = Color("f0b43c")
+				l.outline_modulate = Color("5a3d12")
+				l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+				l.no_depth_test = false
+				l.pixel_size = 0.004
+				add_child(l)
+				_bangs[npc] = l
+	var bob := 0.0 if Settings.get_value("reduced_motion") else sin(_t * 3.0) * 0.08
+	for npc in _bangs:
+		if is_instance_valid(npc):
+			(_bangs[npc] as Label3D).global_position = (npc as Node3D).global_position + Vector3(0, 2.55 + bob, 0)
 
 
 func _make_beam(color: Color) -> Node3D:

@@ -14,6 +14,9 @@ var defs: Dictionary = {}        # id -> def
 var order: Array = []            # ids in file order
 var states: Dictionary = {}      # id -> {state, step, progress, targets}
 var _completing: Dictionary = {} # re-entrancy guard against duplicate rewards
+var pinned := ""                 # quest the player chose to track (tap the objective / Q)
+
+const PLOT_COUNT := 6
 
 
 func _ready() -> void:
@@ -40,11 +43,17 @@ func connect_sources() -> void:
 	GameState.world.flag_set.connect(func(_f): _recheck_all())
 	GameState.shop.stall_upgraded.connect(func(_l): _recheck_all())
 	GameState.shop.shop_transaction_completed.connect(func(total, _items): on_event("sell", {"total": total}))
+	# Crop progress changes the farming hint and which request is worth showing.
+	GameState.world.object_state_changed.connect(func(id: String):
+		if id.begins_with("plot_"):
+			tracked_changed.emit())
+	TimeManager.day_started.connect(func(_d): tracked_changed.emit())
 
 
 func reset() -> void:
 	states.clear()
 	_completing.clear()
+	pinned = ""
 
 
 # --- Queries ------------------------------------------------------------------------------------
@@ -109,8 +118,11 @@ func objective_text(id: String) -> String:
 	match String(o.type):
 		"collect":
 			t += " (%d/%d)" % [min(GameState.inventory.count(String(o.item)), int(o.qty)), int(o.qty)]
-		"care", "catch", "harvest":
+		"care", "catch":
 			t += " (%d/%d)" % [int(s.progress), int(o.qty)]
+		"harvest":
+			t += " (%d/%d)" % [int(s.progress), int(o.qty)]
+			t += "\n" + crop_hint(String(o.get("crop", "any")))
 		"sell":
 			t += " (%d/%d coins)" % [min(int(s.progress), int(o.value)), int(o.value)]
 		"interact":
@@ -128,12 +140,103 @@ func objective_text(id: String) -> String:
 	return t
 
 
+## The request shown on the HUD. A request the player pinned wins; otherwise the main story,
+## but a request that is only waiting overnight (e.g. watered crops) steps aside for one that
+## can be done right now, so a growing crop never hides the next adventure.
 func tracked_quest() -> String:
 	var act := active_ids()
+	if act.is_empty():
+		return ""
+	if pinned != "" and act.has(pinned):
+		return pinned
+	for pass_main in [true, false]:
+		for id in act:
+			if (not pass_main or defs[id].get("main", false)) and not is_waiting(id):
+				return id
 	for id in act:
 		if defs[id].get("main", false):
 			return id
-	return act[0] if not act.is_empty() else ""
+	return act[0]
+
+
+## Switch the HUD to the next request in progress. Returns the newly tracked id.
+func cycle_tracked() -> String:
+	var act := active_ids()
+	if act.size() <= 1:
+		return tracked_quest()
+	var i := act.find(tracked_quest())
+	pinned = String(act[(i + 1) % act.size()])
+	tracked_changed.emit()
+	return pinned
+
+
+## Requests waiting to be picked up: [{id, giver}] (auto-started story steps excluded).
+func available_requests() -> Array:
+	var out: Array = []
+	for id in order:
+		var d: Dictionary = defs[id]
+		if states.has(id) or d.get("auto_start", false) or not prereqs_met(id):
+			continue
+		out.append({"id": id, "giver": String(d.get("giver", ""))})
+	return out
+
+
+## True when the current step cannot progress until tomorrow (crops watered, not yet ripe).
+func is_waiting(id: String) -> bool:
+	var o := objective(id)
+	if o.is_empty() or String(o.type) != "harvest":
+		return false
+	var c := crop_status(String(o.get("crop", "any")))
+	return int(c.ready) == 0 and int(c.dry) == 0 and int(c.watered) > 0
+
+
+## Live state of the player's plots for one crop ("any" = every crop).
+func crop_status(crop: String) -> Dictionary:
+	var res := {"planted": 0, "ready": 0, "dry": 0, "watered": 0, "growth": 0, "days": 0, "ready_plot": "", "dry_plot": "", "empty_plot": ""}
+	var objs: Dictionary = GameState.world.objects
+	for i in range(1, PLOT_COUNT + 1):
+		var pid := "plot_%02d" % i
+		var st: Dictionary = objs.get(pid, {})
+		var c := String(st.get("crop", ""))
+		if c == "":
+			if res.empty_plot == "":
+				res.empty_plot = pid
+			continue
+		if crop != "any" and c != crop:
+			continue
+		var days := int(GameData.CROPS.get(c, {}).get("days", 99))
+		var growth := int(st.get("growth", 0))
+		res.planted += 1
+		res.days = days
+		res.growth = maxi(int(res.growth), growth)
+		if growth >= days:
+			res.ready += 1
+			if res.ready_plot == "":
+				res.ready_plot = pid
+		elif int(st.get("watered_day", -1)) == TimeManager.day:
+			res.watered += 1
+		else:
+			res.dry += 1
+			if res.dry_plot == "":
+				res.dry_plot = pid
+	return res
+
+
+## One plain next step for a harvest objective.
+func crop_hint(crop: String) -> String:
+	var c := crop_status(crop)
+	var nm := "crop" if crop == "any" else String(GameData.CROPS.get(crop, {}).get("name", crop)).to_lower()
+	if int(c.ready) > 0:
+		return "Ready! Harvest the %s at the paddy plots." % nm
+	if int(c.dry) > 0:
+		return "Water the %s today (grown %d/%d days)." % [nm, int(c.growth), int(c.days)]
+	if int(c.watered) > 0:
+		var left := int(c.days) - int(c.growth)
+		return "Watered — it grows overnight. Sleep in the treehouse bed (%d more night%s)." % [left, "" if left == 1 else "s"]
+	var seed := String(GameData.CROPS.get(crop, {}).get("seed", "")) if crop != "any" else ""
+	if seed != "" and GameState.inventory.count(seed) == 0:
+		return "You need %s seeds — Tamsin sells them at the market." % nm
+	return "Plant %s seeds in a paddy plot (R changes seed)." % nm
 
 
 ## Which NPC/target is the current objective about (for map markers & Swan hints).
@@ -148,6 +251,19 @@ func objective_target(id: String) -> String:
 			return "region:" + String(o.region)
 		"interact":
 			return String(o.targets[0])
+		"harvest":
+			var c := crop_status(String(o.get("crop", "any")))
+			if c.ready_plot != "":
+				return c.ready_plot
+			if c.dry_plot != "":
+				return c.dry_plot
+			if int(c.watered) > 0:
+				return "bed"
+			if c.empty_plot != "":
+				var seed := String(GameData.CROPS.get(String(o.get("crop", "")), {}).get("seed", ""))
+				if seed == "" or GameState.inventory.count(seed) > 0:
+					return c.empty_plot
+			return ""
 	return ""
 
 
@@ -359,7 +475,7 @@ func _give_item(item: String, qty: int) -> void:
 
 
 func to_save() -> Dictionary:
-	return {"states": states.duplicate(true)}
+	return {"states": states.duplicate(true), "tracked": pinned}
 
 
 func from_save(d: Dictionary) -> void:
@@ -372,4 +488,5 @@ func from_save(d: Dictionary) -> void:
 				"progress": int(s.get("progress", 0)), "targets": Array(s.get("targets", []))}
 		else:
 			push_warning("Save: skipped unknown quest %s" % id)
+	pinned = String(d.get("tracked", ""))
 	tracked_changed.emit()

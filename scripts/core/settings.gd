@@ -50,6 +50,7 @@ const ACTIONS := {
 	"cycle_seed": ["Change seed", [KEY_R]],
 	"inventory": ["Inventory", [KEY_TAB, KEY_I]],
 	"together": ["Together / village day", [KEY_H]],
+	"next_quest": ["Switch tracked request", [KEY_Q]],
 	"journal": ["Journal", [KEY_J]],
 	"map": ["Map", [KEY_M]],
 	"pause": ["Pause", [KEY_ESCAPE]],
